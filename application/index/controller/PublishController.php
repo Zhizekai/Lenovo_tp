@@ -31,4 +31,5 @@ class PublishController extends Base
             return $this->output_success(200,[],'发送成功');
         }
     }
+
 }
