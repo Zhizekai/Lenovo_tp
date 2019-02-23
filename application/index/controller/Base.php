@@ -42,7 +42,7 @@ class Base extends Controller
      * @param string $msg
      * @return array
      */
-    public function output_success($code, $data = array(), $msg = '')
+    protected function output_success($code, $data = array(), $msg = '')
     {
         $json = [
             'status' => 1,
@@ -60,7 +60,7 @@ class Base extends Controller
      * @param string $msg
      * @return array
      */
-    public function output_error($code, $msg = '')
+    protected function output_error($code, $msg = '')
     {
         $json = [
             'status' => 0,
