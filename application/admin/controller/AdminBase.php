@@ -5,7 +5,7 @@
  * Date: 2019/2/12
  * Time: 13:29
  */
-namespace app\index\controller;
+namespace app\admin\controller;
 
 
 use redis\Redis;
@@ -14,7 +14,7 @@ use think\Config;
 use think\Db;
 use think\Request;
 use token\Token;
-class Base extends Controller
+class AdminBase extends Controller
 {
     /**
      * 设置请求头
@@ -42,7 +42,7 @@ class Base extends Controller
      * @param string $msg
      * @return array
      */
-    protected function output_success($code, $data = array(), $msg = '')
+    public function output_success($code, $data = array(), $msg = '')
     {
         $json = [
             'status' => 1,
@@ -60,7 +60,7 @@ class Base extends Controller
      * @param string $msg
      * @return array
      */
-    protected function output_error($code, $msg = '')
+    public function output_error($code, $msg = '')
     {
         $json = [
             'status' => 0,
@@ -71,18 +71,11 @@ class Base extends Controller
     }
 
 
-    public function lenovo_getuid($token)
+    protected function lenovo_getuid($token)
     {
-        //检查登陆
-        //===========
         if (!$token) {
-            return $this->output_error(400,'请登录登陆');
+            return $this->output_error(400,'登陆');
         }
-
-        //判断是否超时
-        //===========
-        $timestamp = Db::name('user')->where(['token'=>$token])->value(' ');
-
         $uid = Db::name('user')->where(['token'=>$token])->value('id');
 
         return $uid;
@@ -102,7 +95,7 @@ class Base extends Controller
         $token=sha1($user_id.(Config::get('token.secret_key').time()));
 
         //存储token
-        Db::name('user')->where('user_id',$user_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
+        Db::name('user')->where('user_id',$user_id)->update('api_token',$token);
         //返回token
         return $token;
     }
