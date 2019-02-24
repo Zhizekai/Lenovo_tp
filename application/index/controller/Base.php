@@ -111,7 +111,7 @@ class Base extends Controller
         $token=sha1($openid.(Config::get('token.secret_key').time()));
 
         //存储token
-        Db::name('user')->where('openid',$openid)->update(['api_token'=>$token,'api_token_expire'=>time()]);
+        Db::name('user')->where('open_id',$openid)->update(['api_token'=>$token,'api_token_expire'=>time()]);
         //返回token
         return $token;
     }

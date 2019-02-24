@@ -68,7 +68,7 @@ class UserController extends Base
      * @throws \think\Exception
      * @throws \think\exception\PDOException
      */
-    public function login()
+    public function register()
     {
         $code = input('code',0,'trim');
         $area = input('area',0,'trim');
@@ -104,7 +104,7 @@ class UserController extends Base
 
         $token = $this->token_create($openid);
 
-        return $token;
+        return $this->output_success(200,$token,'登陆成功');
 
 
     }
@@ -114,7 +114,7 @@ class UserController extends Base
     public function zzk()
     {
         $token = $this->token_create(5);
-        var_dump($token);
+        return $this->output_success(200,$token,'登陆成功');
     }
 
     /**

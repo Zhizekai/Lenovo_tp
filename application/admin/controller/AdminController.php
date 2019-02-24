@@ -15,7 +15,17 @@ class AdminController extends AdminBase
 
     public function show_admin_info()
     {
-        $res = Db::name('admin')->field('head_img,info')->select();
+
+        $page = input('page',0,'intval');
+
+
+        if (!$page) {
+            return $this->output_error(400,'请输入页数');
+        }
+        $where = [];
+        $where['id'] = ['between',[($page-1)*4,$page*4]];
+
+        $res = Db::name('admin')->where($where)->field('head_img,info')->select();
 
 
         if (!$res) {
