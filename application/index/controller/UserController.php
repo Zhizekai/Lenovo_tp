@@ -16,47 +16,6 @@ class UserController extends Base
 {
 
     /**
-     * 获取用户信息
-     * @return array
-     * @throws \think\Exception
-     * @throws \think\exception\PDOException
-     */
-    public function info()
-    {
-        $token = input('token',0,'trim');
-        $uid = $this->lenovo_getuid($token);
-
-
-        $area = input('area',0,'trim');
-        $years = input('ysers',0,'trim');
-
-        if (!$token){
-        return $this->output_error(10010,'请输入token');
-        }
-        if (!$area){
-            return $this->output_error(10010,'请输入token');
-        }
-        if (!$years){
-            return $this->output_error(10010,'请输入token');
-        }
-
-        $area_res = Db::name('area')->insert(['user_id'=>$uid,'area'=>$area]);
-        if (!$area_res) {
-            return $this->output_error(10010,'地区录入错误');
-        }
-
-        $years_res = Db::name('user')->where(['id'=>$uid])->update(['years'=>$years]);
-
-        if (!$years_res) {
-            return $this->output_error(10010,'年份录入错误');
-        }else{
-            return $this->output_success(200,[],'信息录入成功');
-        }
-
-    }
-
-
-    /**
      *
      * input
      * @code
@@ -96,7 +55,7 @@ class UserController extends Base
         if (!$area_id) {
             return $this->output_error(10010,'请输入正确的地理位置');
         }
-        $res = Db::name('user')->insert(['years'=>$years,'area_id'=>$area_id,'openid'=>$openid]);
+        $res = Db::name('user')->insert(['years'=>$years,'area_id'=>$area_id,'openid'=>$openid['openid']]);
 
         if (!$res) {
             return $this->output_error(10010,'存储失败');
@@ -124,8 +83,11 @@ class UserController extends Base
      */
     public function get_openid($code){
 
-        $appid = 'wx1ade6e6d6254487c';
-        $appsecret = '43af9a084d357afb06f78b1abd9d4f90';
+//        $appid = 'wx1ade6e6d6254487c';
+//        $appsecret = '43af9a084d357afb06f78b1abd9d4f90';
+        $appid = 'wx98cb9fae6e8b0cca';
+        $appsecret = 'b215d069d948ea9c79234a25b1eba9ea';
+
         $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.$appid.'&secret='.$appsecret.'&js_code='.$code.'&grant_type=authorization_code';
         $html = file_get_contents($url);
         $vv = (array)json_decode($html);

@@ -23,7 +23,7 @@ class AdminController extends AdminBase
             return $this->output_error(400,'请输入页数');
         }
         $where = [];
-        $where['id'] = ['between',[($page-1)*4,$page*4]];
+        $where['id'] = ['between',[($page-1)*15,$page*15]];
 
         $res = Db::name('admin')->where($where)->field('head_img,info')->select();
 
