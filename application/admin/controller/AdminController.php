@@ -22,10 +22,8 @@ class AdminController extends AdminBase
         if (!$page) {
             return $this->output_error(400,'请输入页数');
         }
-        $where = [];
-        $where['id'] = ['between',[($page-1)*15,$page*15]];
 
-        $res = Db::name('admin')->where($where)->field('head_img,info')->select();
+        $res = Db::name('admin')->page($page,15)->field('head_img,info')->select();
 
 
         if (!$res) {

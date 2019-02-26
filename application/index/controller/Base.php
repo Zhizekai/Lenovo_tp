@@ -104,14 +104,14 @@ class Base extends Controller
      * token=sha1(user_id+secret_key+timestamp_now)
      * @param $user_id
      */
-    public function token_create($openid){
+    public function token_create($open_id){
 
 
         //创建token=sha1(user_id + secret_key+salt+time())
-        $token=sha1($openid.(Config::get('token.secret_key').time()));
+        $token=sha1($open_id.(Config::get('token.secret_key').time()));
 
         //存储token
-        Db::name('user')->where('open_id',$openid)->update(['api_token'=>$token,'api_token_expire'=>time()]);
+        Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
         //返回token
         return $token;
     }

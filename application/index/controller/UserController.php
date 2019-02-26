@@ -17,12 +17,7 @@ class UserController extends Base
 
     /**
      *
-     * input
-     * @code
-     * @token
-     * @area
-     * @years
-     *
+     * @input token code area years
      * @return array|mixed|string
      * @throws \think\Exception
      * @throws \think\exception\PDOException
@@ -55,7 +50,7 @@ class UserController extends Base
         if (!$area_id) {
             return $this->output_error(10010,'请输入正确的地理位置');
         }
-        $res = Db::name('user')->insert(['years'=>$years,'area_id'=>$area_id,'openid'=>$openid['openid']]);
+        $res = Db::name('user')->insert(['years'=>$years,'area_id'=>$area_id,'open_id'=>$openid['openid']]);
 
         if (!$res) {
             return $this->output_error(10010,'存储失败');
@@ -72,7 +67,7 @@ class UserController extends Base
 
     public function zzk()
     {
-        $token = $this->token_create(5);
+        $token = $this->token_create(32432342);
         return $this->output_success(200,$token,'登陆成功');
     }
 
