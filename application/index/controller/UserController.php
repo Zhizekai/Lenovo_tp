@@ -85,7 +85,6 @@ class UserController extends Base
 
 
         //更新token和token过期时间
-        //===========
         $token = $this->token_create($openid);
         $res = Db::name('user')->where('open_id',$openid)->update(['token'=>$token,'api_token_expire'=>time()]);
         if (empty($res)){
@@ -100,13 +99,22 @@ class UserController extends Base
 
     public function zzk()
     {
-        // $request = Request::instance()->header();
-        //dump($request);
-        $baiduUrl = "http://www.baidu.com/link?url=LZE_J6a1AcieLlTzNxUZQVpe2trQ99zx1ls85ux8dXaGlFB3eiEm_Y6SJC1sNQf_";
+        //从http头里取token
+        $request = Request::instance()->header();
 
-        file_get_contents($baiduUrl);
 
-        dump($http_response_header);
+        if (!array_key_exists('authorization',$request)) {
+            return $this->output_error(400,'请把token放在http请求头里面');
+        }
+        $token = explode(' ',$request['authorization']);
+
+        $token = $token[1];
+            var_dump($token);
+//        $baiduUrl = "http://www.baidu.com/link?url=LZE_J6a1AcieLlTzNxUZQVpe2trQ99zx1ls85ux8dXaGlFB3eiEm_Y6SJC1sNQf_";
+//
+//        file_get_contents($baiduUrl);
+//
+//        dump($http_response_header);
         //dump($this->token_create('333333'));
         //dump(rand(10,100));
     }

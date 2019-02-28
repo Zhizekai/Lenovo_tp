@@ -10,6 +10,7 @@ namespace app\index\controller;
 
 
 use think\Db;
+use think\Request;
 
 class PublishController extends Base
 {
@@ -17,12 +18,15 @@ class PublishController extends Base
     public function publish()
     {
         //从http头里取token
-        if (!array_key_exists('HTTP_AUTHORIZATION',$_SERVER)) {
+        $request = Request::instance()->header();
+
+
+        if (!array_key_exists('authorization',$request)) {
             return $this->output_error(400,'请把token放在http请求头里面');
         }
-        $token = $_SERVER['HTTP_AUTHORIZATION'];
-        $deal = explode(' ',$token);
-        $token = $deal[1];
+        $token = explode(' ',$request['authorization']);
+
+        $token = $token[1];
 
         $uid = $this->lenovo_getuid($token);
 

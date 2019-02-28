@@ -14,6 +14,8 @@ use think\Config;
 use think\Db;
 use think\Request;
 use token\Token;
+
+
 class Base extends Controller
 {
     /**
