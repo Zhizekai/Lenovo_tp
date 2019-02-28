@@ -23,13 +23,13 @@ class AdminController extends AdminBase
             return $this->output_error(400,'请输入页数');
         }
 
-        $res = Db::name('admin')->page($page,15)->field('head_img,info')->select();
+        $res = Db::name('admin')->page($page,15)->field('name,head_img,info')->select();
 
 
         if (!$res) {
             return $this->output_error(404,'无解忧人');
         }else{
-            return $this->output_success(200,$res,'head_img是头像,info是解忧人信息');
+            return $this->output_success(200,$res,'name是解忧人的名子,head_img是头像,info是解忧人信息');
         }
 
 
