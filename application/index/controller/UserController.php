@@ -24,28 +24,65 @@ class UserController extends Base
      * @throws \think\exception\PDOException
      */
     public function register()
-    {
-        $code = input('code',0,'trim');
-        $area = input('area',0,'trim');
-        $years = input('years',0,'trim');
-        $name = input('name','','trim');
 
-//
-//        $token = input('token',0,'trim');
-//        $uid = $this->lenovo_getuid($token);
+    {
+        //接收数据
+        $code = input('code',0,'trim');
+        $age = input('age',0,'intval');
+        $years = input('years',0,'trim');
+
+
+        //获取openid openid['openid']才是真正的openid
         $openid = $this->get_openid($code);
         if (array_key_exists('errmsg',$openid)){
-            return $this->output_error(40029,'code错误|appkey|appscrect错误');
+            return $this->output_error(40029,'code错误|appkey错误|appscrect错误');
         }
-        if (!$area){
-            return $this->output_error(10010,'请输入地区');
+        if (!$age){
+            return $this->output_error(10010,'请输入年龄');
         }
         if (!$years){
             return $this->output_error(10010,'请输入年份');
         }
-        if (!$name) {
-            return $this->output_error(10010,'请输入昵称');
+
+
+        //检查用户是否已经注册，如果已经注册返回token
+        $token_sign = Db::name('user')->where('open_id',$openid['openid'])->value('api_token');
+        if ($token_sign) {
+            $now_token = $this->token_create($openid['openid']);
+            return $this->output_success(401,$now_token,'该用户已注册，请登录，data里的就是token');
         }
+
+        //储存数据
+        $res = Db::name('user')->insert([
+            'years'=>$years,
+            'age'=>$age,
+            'open_id'=>$openid['openid']
+        ]);
+
+        if (!$res) {
+            return $this->output_error(10010,'存储失败');
+        }
+
+        //返回token
+        $token = $this->token_create($openid['openid']);
+
+        return $this->output_success(200,$token,'注册成功');
+
+
+    }
+
+
+    public function sign_in()
+
+    {
+        $code = input('code',0,'trim');
+
+        //得到openid
+        $openid = $this->get_openid($code);
+        if (array_key_exists('errmsg',$openid)){
+            return $this->output_error(40029,'code错误|appkey|appscrect错误');
+        }
+
 
 
 
@@ -63,9 +100,14 @@ class UserController extends Base
 
         $res = Db::name('user')->insert(['years'=>$years,'area_id'=>$area_id,'open_id'=>$openid['openid']]);
 
-        if (!$res) {
-            return $this->output_error(10010,'存储失败');
+
+        //更新token和token过期时间
+        $token = $this->token_create($openid['openid']);
+        $res = Db::name('user')->where('open_id',$openid['openid'])->update(['token'=>$token,'api_token_expire'=>time()]);
+        if (empty($res)){
+            return $this->output_error(40029,'登陆失败');
         }
+
 
         $token = $this->token_create($openid['openid']);
 
@@ -96,8 +138,11 @@ class UserController extends Base
 
         $token = $this->token_create($openid);
 
-        return $this->output_success(200,$token,'登陆成功');
 
+
+
+        //返回登陆信息
+        return $this->output_success(200,$token,'登陆成功');
 
     }
 
@@ -105,8 +150,14 @@ class UserController extends Base
 
     public function zzk()
     {
+
         $request = Request::instance()->header();
         dump($request);
+
+
+
+        var_dump(date('Y-m-d',time()));
+
     }
 
     /**
@@ -116,7 +167,10 @@ class UserController extends Base
      */
     public function get_openid($code){
 
+
 //wx98cb9fae6e8b0cca
+
+
         $appid = 'wx98cb9fae6e8b0cca';
         $appsecret = 'b215d069d948ea9c79234a25b1eba9ea';
 

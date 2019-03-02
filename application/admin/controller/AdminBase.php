@@ -28,7 +28,7 @@ class AdminBase extends Controller
 
     /**
      * 空方法处理
-     * @return json
+     * @return
      */
     public function _empty()
     {
@@ -71,102 +71,83 @@ class AdminBase extends Controller
     }
 
 
-    protected function lenovo_getuid($token)
-    {
-        if (!$token) {
-            return $this->output_error(400,'登陆');
-        }
-        $uid = Db::name('user')->where(['token'=>$token])->value('id');
-
-        return $uid;
-
-    }
-
     /**
-     * 创建Token
-     * 创建规则：
-     * token=sha1(user_id+secret_key+timestamp_now)
-     * @param $user_id
+     * 创建token
+     * @param $admin_id
+     * @return string
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
      */
-    public function token_create($user_id){
+    public function token_create($admin_id){
 
 
         //创建token=sha1(user_id + secret_key+salt+time())
-        $token=sha1($user_id.(Config::get('token.secret_key').time()));
+        $token=sha1($admin_id.time().rand(233,1232));
 
         //存储token
-        Db::name('user')->where('user_id',$user_id)->update('api_token',$token);
+        Db::name('admin')->where('admin_id',$admin_id)->update(['token'=>$token,'expire'=>time()]);
         //返回token
         return $token;
     }
 
-
-//    protected function getuid($isSign = true)
-//    {
-//        //检验登陆
-//        if($isSign){
-//            $this->check_sign();
-//        }
-//        //获得uid
-//        $token = input('param.token');
-//        return Token::get_user_id($token);
-//    }
-
-
     /**
-     * 验证管理员登陆和管理员权限
-     * @param $uid
-     * @param $model
-     * @param bool $issign 控制它是否需要登陆
-     * @return array|bool
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
+     * 判断管理员是否登陆
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
      */
-    protected function check_power($issign = true)
+    public function check_admin($sup_admin = null)
     {
-        /*
-         * 需不需要管理员登陆
-         */
-
-//              //需要token,salt,timestamp
-//        if($issign){
-//            $token = $this->admin_check_sign();
-//        }
-//
-//        /*
-//         * 验证管理员有没有操作这个模块的权限
-//         */
-//
-//        //当前管理员的id
-//        $uid = Token::get_user_id($token);
-
-        $uid = $this->getuid();
-
-        //模块的id
-        $model = input('model',0,'intval');
-        if ($model == 0){
-            return $this->output_error(500,'请传入模块');
-        }
-        //判断管理员有没有权限
-        if (!$this->check_power($uid,$model)){
-            return $this->output_error(500,'无权限');
+        //从http头里取token
+        $request = Request::instance()->header();
+        if (!array_key_exists('authorization',$request)) {
+            $json = $this->output_error(400,'请把token放在http请求头里面');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
         }
 
 
-        $result = Db::name('user')->where(['id'=>$uid])->find();
+        //检查登陆
+        $token = explode(' ',$request['authorization']);
+        if (!array_key_exists('1',$token)) {
+            $json = $this->output_error(401,'请登陆');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
+        }
 
-        if (in_array($result['user_role'],[1,2])){
-            if ($result['user_role'] ==2){
-                if (!in_array($model,explode(',',$result['power_ids']))){
-                    return false;
-                }
+        //判断这个管理员有没有被删除
+        $token =  $token[1];
+        $del = Db::name('admin')->where('token',$token)->value('is_deleted');
+        if ($del) {
+            $json = $this->output_error(500,'你管理员身份已经被解除，请离开');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);
+        }
+
+
+        if ($sup_admin) {
+            $res = Db::name('admin')->where('token',$token)->value('status');
+            if (!$res) {
+                $json = $this->output_error(400,'你不是超级管理员，伪造超级管理员身份，已报警');
+                echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
             }
-            return true;
-        }else{
-            return $this->output_error(500,'该账户不是管理员');
+
+        }
+
+
+        //判断是否超时
+        $timestamp = Db::name('admin')->where(['token'=>$token])->value('expire');
+        if (!$timestamp) {
+            $json = $this->output_error(400,'这是你伪造的token，已报警');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
+        }
+        $timediff = (int)$timestamp-time();
+        $days = intval($timediff/86400);
+        if ($days >= 30) {
+            $json = $this->output_error(401,'登陆超时');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
+        }else {
+            Db::name('admin')->where('token',$token)->update(['expire'=>time()]);
         }
     }
+
+
 
 
 //    前端可封装

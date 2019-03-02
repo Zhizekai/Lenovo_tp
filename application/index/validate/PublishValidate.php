@@ -6,6 +6,8 @@
  * Time: 17:29
  */
 namespace app\index\validate;
+
+
 use think\Validate;
 
 class PublishValidate extends Validate
