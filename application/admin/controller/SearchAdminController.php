@@ -19,16 +19,20 @@ class SearchAdminController extends AdminBase
 
 
         $this->check_admin(1);
-        var_dump('33333');die;
+
         $account = input('account','','trim');
         $status = input('status','','trim');
 
-        $where = ['account'] = ['like','%'.$account.'%'];
-        $where = ['status'] = ['like','%'.$status.'%'];
+        $where['account'] = ['like','%'.$account.'%'];
+        $where['status'] = ['like','%'.$status.'%'];
+        $where['is_deleted'] = 0;
 
-        $res = Db::name('name')->where()->find();
+        $res = Db::name('admin')->where($where)->field('account,password,head_img,info,name,status')->select();
+        if (empty($res)) {
+            return $this->output_error(500,'没有此管理员');
+        }
 
 
-        return $this->output_success(200,$res,'success');
+        return $this->output_success(200,$res,'这些是符合要求的管理员');
     }
 }

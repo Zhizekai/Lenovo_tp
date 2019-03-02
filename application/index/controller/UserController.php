@@ -84,7 +84,7 @@ class UserController extends Base
 
         //更新token和token过期时间
         $token = $this->token_create($openid['openid']);
-        $res = Db::name('user')->where('open_id',$openid['openid'])->update(['token'=>$token,'api_token_expire'=>time()]);
+        $res = Db::name('user')->where('open_id',$openid['openid'])->update(['api_token'=>$token,'api_token_expire'=>time()]);
         if (empty($res)){
             return $this->output_error(40029,'登陆失败');
         }
