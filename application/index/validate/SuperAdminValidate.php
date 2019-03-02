@@ -3,7 +3,7 @@
  * Created by PhpStorm.
  * User: asus
  * Date: 2019/3/2
- * Time: 10:39
+ * Time: 13:58
  */
 
 namespace app\index\validate;
@@ -11,7 +11,7 @@ namespace app\index\validate;
 
 use think\Validate;
 
-class SearchAdminValidate extends Validate
+class SuperAdminValidate extends Validate
 {
 
 }
