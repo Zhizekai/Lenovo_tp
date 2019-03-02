@@ -93,7 +93,9 @@ class Base extends Controller
         $timediff = (int)$timestamp-time();
         $days = intval($timediff/86400);
         if ($days >= 30) {
+
             header('HTTP/1.0 401 Unauthorized');exit;
+
         }else {
             Db::name('user')->where('api_token',$token)->update(['api_token_expire'=>time()]);
         }
@@ -101,6 +103,8 @@ class Base extends Controller
         //获取用户id
         //========
         $uid = Db::name('user')->where('api_token',$token)->value('id');
+
+
 
 
 
@@ -118,7 +122,9 @@ class Base extends Controller
 
 
         //创建token=sha1(user_id + secret_key+salt+time())
+
         $token=sha1((string)$open_id.time().rand(20,800));
+
 
         //存储token
         Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
