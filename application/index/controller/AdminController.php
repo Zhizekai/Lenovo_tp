@@ -6,26 +6,21 @@
  * Time: 16:51
  */
 
-namespace app\admin\controller;
+namespace app\index\controller;
 
 use think\Db;
 
-class AdminController extends AdminBase
+class AdminController extends Base
 {
 
+    //随机获取五个解忧人信息
     public function show_admin_info()
     {
 
-        $page = input('page',0,'intval');
-
-
-        if (!$page) {
-            return $this->output_error(400,'请输入页数');
-        }
-
-        $res = Db::name('admin')->page($page,15)->field('name,head_img,info')->select();
-
-
+        //随机从数据库里获取五个管理员信息
+        $max = Db::name('admin')->count();
+        $rand = rand(0,$max-5);
+        $res = Db::name('admin')->limit($rand,5)->field('name,head_img,info')->select();
         if (!$res) {
             return $this->output_error(404,'无解忧人');
         }else{

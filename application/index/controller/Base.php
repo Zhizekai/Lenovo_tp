@@ -30,7 +30,7 @@ class Base extends Controller
 
     /**
      * 空方法处理
-     * @return json
+     * @return array
      */
     public function _empty()
     {
@@ -78,16 +78,22 @@ class Base extends Controller
         //检查登陆
         //===========
         if (!$token) {
-            return $this->output_error(400,'请登录登陆');
+            $json = $this->output_error(401,'请登陆');
+            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
         }
 
         //判断是否超时
         //===========
         $timestamp = Db::name('user')->where(['api_token'=>$token])->value('api_token_expire');
+
+        if (empty($timestamp)){
+            header('HTTP/1.0 401 Unauthorized');exit;
+        }
+
         $timediff = (int)$timestamp-time();
         $days = intval($timediff/86400);
         if ($days >= 30) {
-            return $this->output_error(401,'登陆超时');
+            header('HTTP/1.0 401 Unauthorized');exit;
         }else {
             Db::name('user')->where('api_token',$token)->update(['api_token_expire'=>time()]);
         }
@@ -96,9 +102,7 @@ class Base extends Controller
         //========
         $uid = Db::name('user')->where('api_token',$token)->value('id');
 
-        if (empty($uid)){
-            return $this->output_error(404,'token已更新请获取新的token');
-        }
+
 
         return $uid;
 
@@ -120,74 +124,6 @@ class Base extends Controller
         Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
         //返回token
         return $token;
-    }
-
-
-//    protected function getuid($isSign = true)
-//    {
-//        //检验登陆
-//        if($isSign){
-//            $this->check_sign();
-//        }
-//        //获得uid
-//        $token = input('param.token');
-//        return Token::get_user_id($token);
-//    }
-
-
-    /**
-     * 验证管理员登陆和管理员权限
-     * @param $uid
-     * @param $model
-     * @param bool $issign 控制它是否需要登陆
-     * @return array|bool
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\ModelNotFoundException
-     * @throws \think\exception\DbException
-     */
-    protected function check_power($issign = true)
-    {
-        /*
-         * 需不需要管理员登陆
-         */
-
-//              //需要token,salt,timestamp
-//        if($issign){
-//            $token = $this->admin_check_sign();
-//        }
-//
-//        /*
-//         * 验证管理员有没有操作这个模块的权限
-//         */
-//
-//        //当前管理员的id
-//        $uid = Token::get_user_id($token);
-
-        $uid = $this->getuid();
-
-        //模块的id
-        $model = input('model',0,'intval');
-        if ($model == 0){
-            return $this->output_error(500,'请传入模块');
-        }
-        //判断管理员有没有权限
-        if (!$this->check_power($uid,$model)){
-            return $this->output_error(500,'无权限');
-        }
-
-
-        $result = Db::name('user')->where(['id'=>$uid])->find();
-
-        if (in_array($result['user_role'],[1,2])){
-            if ($result['user_role'] ==2){
-                if (!in_array($model,explode(',',$result['power_ids']))){
-                    return false;
-                }
-            }
-            return true;
-        }else{
-            return $this->output_error(500,'该账户不是管理员');
-        }
     }
 
 
