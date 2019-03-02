@@ -11,6 +11,7 @@ namespace app\index\controller;
 
 use think\Db;
 use think\exception\DbException;
+use think\Request;
 
 class QuestionInformationController extends Base
 {
@@ -24,27 +25,40 @@ class QuestionInformationController extends Base
 
     public function question_index () {
 
-        $type = input('type',0,'intval'); //  0:问题列表   1：我的问题
+//        $type = input('type',0,'intval'); //  0:问题列表   1：我的问题
 
         $page = input('page',1,'intval');
+
+        $token = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
+
 //        当前问题页面
         $where = [];
-        if ($type == 1){
-            $token = input('token','','trim');
+        $order = 'a.show_number';
+        if (!is_null($token)){
+
+            $deal = explode(" ",$token);
+            $token = $deal[1];
             $uid=$this->lenovo_getuid($token);
 
             if (empty($uid)) {
-                return $this->output_error(10009,'请先登陆');
+                return $this->output_error(10009,'用户信息错误');
             }
             $where['a.user_id'] = $uid;
+
+            $order = 'a.status asc';
+        } else {
+//            $where['show_number'] = ['>',0];
+            $where['a.isshow'] = 1;
         }
+
 
         $questions = Db::name('question')->alias('a')
             ->join('admin b','a.admin_id=b.id')
-            ->where(['b.is_deleted'=>0])
+            ->where(['a.is_deleted'=>0])
             ->where($where)
-            ->order('a.show_number')
-            ->field('a.question,a.answer,b.name')
+            ->order($order)
+            ->order('a.show_number asc')
+            ->field('a.question,a.answer,b.name,a.status,a.id')
             ->page($page,15)
             ->select();
 
@@ -52,9 +66,12 @@ class QuestionInformationController extends Base
             $value['son']['question'] = $value['question'];
             $value['son']['answer'] = $value['answer'];
             $value['son']['name'] = $value['name'];
+            $value['son']['status'] = $value['status'];
             unset($value['answer']);
             unset($value['name']);
+            unset($value['status']);
         }
+
 
 
         if ($questions) {
@@ -73,13 +90,19 @@ class QuestionInformationController extends Base
      */
 
     public function change_status () {
-        $status = input('status',1,'intval');
+        $status = 2;
 //        问题状态
-        $token = input('token','','trim');
+        $token = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
+
         $qid = input('qid','','intval');
 //        问题id
 
-        $uid=$this->lenovo_getuid($token);
+        if (!is_null($token)){
+            $deal = explode(' ',$token);
+            $token = $deal[1];
+
+            $uid=$this->lenovo_getuid($token);
+        }
 
         if (empty($uid)) {
             return $this->output_error(10009,'请先登陆');
@@ -88,6 +111,77 @@ class QuestionInformationController extends Base
         $res = Db::name('question')->where(['user_id'=>$uid,'id'=>$qid])->update(['status'=>$status]);
         if (!$res) {
             return $this->output_error(10000,'我的问题修改失败');
+        } else {
+            return $this->output_success(10010,$qid,'我的问题修改成功');
+        }
+    }
+
+
+    public function add_view () {
+
+        $qid = input('qid',0,'intval');
+//        问题id
+
+        $date_time = strtotime(date('Y-m-d',time()));
+
+//        $token = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
+//
+//        $where = [];
+//        if (!is_null($token)){
+//            $deal = explode(' ',$token);
+//            $token = $deal[1];
+//
+//            $uid=$this->lenovo_getuid($token);
+//        }
+//
+//        if (!empty($uid)) {
+//            $where = ['id'=>$uid];
+//        }
+
+        $view_num = Db::name('qview')->where(['date_time'=>$date_time,'qid'=>$qid])->value('view');
+
+        if (!$view_num) {
+
+            $res = Db::name('qview')
+                ->insert(['date_time'=>$date_time,'qid'=>$qid,'view'=>1]);
+
+        }else{
+            $res = Db::name('qview')
+                ->where(['date_time'=>$date_time,'qid'=>$qid])
+                ->update(['view'=>$view_num+1]);
+//            var_dump(Db::name('qview')->getLastSql());die;
+        }
+
+
+        if ($res) {
+            return $this->output_success(10010,'','添加浏览成功');
+//            无返回
+        } else {
+            return $this->output_error(10000,'添加浏览失败');
+        }
+    }
+
+    public function unread () {
+
+        $token = !empty($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : null;
+
+        if (!is_null($token)){
+            $deal = explode(' ',$token);
+            $token = $deal[1];
+            $uid=$this->lenovo_getuid($token);
+
+        } else {
+            $uid = 0;
+            $this->output_error(10000,'查询用户失败');
+        }
+
+
+        $res = Db::name('question')->where(['user_id'=>$uid,'status'=>1])->count('status');
+
+        if ($res) {
+            return $this->output_success(10010,$res,'查询未阅读成功');
+        } else {
+            return $this->output_success(10000,0,'查询未阅读为0');
         }
     }
 }

@@ -85,14 +85,18 @@ class Base extends Controller
         $timediff = (int)$timestamp-time();
         $days = intval($timediff/86400);
         if ($days >= 30) {
-            return $this->output_error(400,'登陆超时');
+            return $this->output_error(401,'登陆超时');
         }else {
             Db::name('user')->where('api_token',$token)->update(['api_token_expire'=>time()]);
         }
 
         //获取用户id
         //========
-        $uid = Db::name('user')->where(['api_token'=>$token])->value('id');
+        $uid = Db::name('user')->where('api_token',$token)->value('id');
+
+        if (empty($uid)){
+            return $this->output_error(404,'token已更新请获取新的token');
+        }
 
         return $uid;
 
@@ -104,14 +108,14 @@ class Base extends Controller
      * token=sha1(user_id+secret_key+timestamp_now)
      * @param $user_id
      */
-    public function token_create($openid){
+    public function token_create($open_id){
 
 
         //创建token=sha1(user_id + secret_key+salt+time())
-        $token=sha1($openid.(Config::get('token.secret_key').time()));
+        $token=sha1((string)$open_id.time());
 
         //存储token
-        Db::name('user')->where('openid',$openid)->update(['api_token'=>$token,'api_token_expire'=>time()]);
+        Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
         //返回token
         return $token;
     }
