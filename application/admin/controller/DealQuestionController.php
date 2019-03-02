@@ -15,6 +15,7 @@ class DealQuestionController extends AdminBase
 
     /**
      * 解忧人获取问题列表
+     * 除了已删除的
      * @return array
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
@@ -23,6 +24,8 @@ class DealQuestionController extends AdminBase
 
     public function index() {
 
+        $this->check_admin();
+
         $page = input('page',1,'intval');
 //        页面
 
@@ -30,7 +33,7 @@ class DealQuestionController extends AdminBase
             ->join('user b','a.user_id=b.id')
             ->where(['a.is_deleted'=>0])
             ->order('status','asc')
-            ->field('a.question,a.answer,b.name,a.status,a.id,a.user_id')
+            ->field('a.question,a.answer,b.name,a.status,a.id,a.user_id,a.tag_id')
             ->page($page,15)
             ->select();
 
@@ -52,7 +55,17 @@ class DealQuestionController extends AdminBase
 
     }
 
+    /**
+     * 解忧人回答问题接口
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+
     public function answer_question () {
+
+        $this->check_admin();
+
         $qid = input('qid',0,'intval');
         $answer = input('answer','','trim');
         $status = 1;
@@ -67,7 +80,16 @@ class DealQuestionController extends AdminBase
     }
 
 
+    /**
+     * 超管修改问题展示顺序接口
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+
     public function change_num () {
+
+        $this->check_admin(1);
 
         $qid = input('qid',0,'intval');
 
@@ -85,7 +107,22 @@ class DealQuestionController extends AdminBase
 
     }
 
+
+    /**
+     * 搜索问题接口
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+
+
     public function search () {
+
+        $this->check_admin();
+
 
         $tag_id = input('tag_id',0,'intval');
 //        问题标签id
@@ -93,20 +130,34 @@ class DealQuestionController extends AdminBase
 //        问题状态 0未回答 1未查看 2已查看
         $describe = input('describe',0,'trim');
 //        问题描述
-        $where = [];
-
-        if ($tag_id == 0) {
-
-        }
+        $where['tag_id'] = ['like','%'.$tag_id.'%'];
+        $where['status'] = ['like','%'.$status.'%'];
+        $where['question'] = ['like','%'.$describe.'%'];
+        $where['is_deleted'] = 0;
 
         $res = Db::name('question')
-            ->where($where);
+            ->where($where)
+            ->select();
 
+        if ($res) {
+            return $this->output_success(10010,1,'搜索问题成功');
+        } else {
+            return $this->output_success(10000,0,'搜索问题失败');
+        }
 
     }
 
 
+    /**
+     * 超管上下架主页问题接口
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+
     public function change_show () {
+
+        $this->check_admin(1);
 
         $qid = input('qid',0,'intval');
 
@@ -124,4 +175,9 @@ class DealQuestionController extends AdminBase
         }
 
     }
+
+
+
+
+
 }
