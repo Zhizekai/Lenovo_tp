@@ -12,6 +12,9 @@ namespace app\index\controller;
 use think\Db;
 use app\index\controller\Base;
 use think\Request;
+use \EasyWeChat\Factory;
+
+vendor('overtrue.wechat.src.Factory');
 
 class UserController extends Base
 {
@@ -32,7 +35,7 @@ class UserController extends Base
 
 
         //获取openid openid['openid']才是真正的openid
-        $openid = $this->get_openid($code);
+        $openid = $this->sever($code);
         if (array_key_exists('errmsg',$openid)){
             return $this->output_error(40029,'code错误|appkey错误|appscrect错误');
         }
@@ -76,7 +79,7 @@ class UserController extends Base
         $code = input('code',0,'trim');
 
         //得到openid
-        $openid = $this->get_openid($code);
+        $openid = $this->sever($code);
         if (array_key_exists('errmsg',$openid)){
             return $this->output_error(40029,'code错误|appkey|appscrect错误');
         }
@@ -86,7 +89,8 @@ class UserController extends Base
         $token = $this->token_create($openid['openid']);
         $res = Db::name('user')->where('open_id',$openid['openid'])->update(['api_token'=>$token,'api_token_expire'=>time()]);
         if (empty($res)){
-            return $this->output_error(40029,'登陆失败');
+            return $this->output_error(40029,'看到这条信息就证明同一个用户不同的code得到的是不同的openid，我拿你的code找微信要的openid是'
+            .$openid['openid'].'我想数据库里一定没有这个openid');
         }
 
         //返回登陆信息
@@ -97,9 +101,24 @@ class UserController extends Base
 
     public function zzk()
     {
+        $start_year = input('start_year/s');
+        $start_month = input('start_month/s');
+        $start_day = input('start_day/s');
+
+        $start=new DateTime($start_year.'-'.$start_month.'-'.$start_day);
 
 
-        var_dump(date('Y-m-d',time()));
+
+        $week = date("Y-m-d",strtotime($start_year.'-'.$start_month.'-'.$start_day." -1 week"));
+        $end=new DateTime($week);
+        $all_pv = 0;
+
+
+        //从20号到21号是一天
+        foreach(new DatePeriod($start,new DateInterval('P1D'),$end) as $zzk) {
+            $sb = exec('/root/zzkPv.sh'.' '.$zzk->format('d').' '.$zzk->format('M').' '.$zzk->format('Y'),$pv);
+            $all_pv += (int)$sb;
+        }
     }
 
     /**
@@ -116,6 +135,23 @@ class UserController extends Base
         $html = file_get_contents($url);
         $vv = (array)json_decode($html);
         return $vv;
+    }
+
+    public function sever($code)
+    {
+        $config = [
+            'app_id' => 'wx98cb9fae6e8b0cca',
+            'secret' => 'b215d069d948ea9c79234a25b1eba9ea',
+
+            // 下面为可选项
+            // 指定 API 调用返回结果的类型：array(default)/collection/object/raw/自定义类名
+            'response_type' => 'array',
+
+        ];
+
+        $app = Factory::miniProgram($config);
+        $pp = $app->auth->session($code);
+        return $pp;
     }
 
 }

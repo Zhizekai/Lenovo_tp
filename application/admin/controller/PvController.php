@@ -17,9 +17,29 @@ class PvController extends AdminBase
 
     public function zzk()
     {
-        $start=new DateTime('2019-5-6');
-        var_dump($start);
+        $start_year = input('start_year/s');
+        $start_month = input('start_month/s');
+        $start_day = input('start_day/s');
 
+        $start=new DateTime($start_year.'-'.$start_month.'-'.$start_day);
+
+
+
+        $week = date("Y-m-d",strtotime($start_year.'-'.$start_month.'-'.$start_day." -1 week"));
+        $end=new DateTime($week);
+
+
+
+        //从20号到21号是一天
+        foreach(new DatePeriod($start,new DateInterval('P1D'),$end) as $zzk) {
+            $q = $zzk->format('d');
+            $w = $zzk->format('M');
+            $r = $zzk->format('Y');
+            var_dump($q);
+            var_dump($w);
+            var_dump($r);
+        }
+        var_dump(2222);
 
     }
 
@@ -83,7 +103,7 @@ class PvController extends AdminBase
             $sb = exec('/root/zzkPv.sh'.' '.$zzk->format('d').' '.$zzk->format('M').' '.$zzk->format('Y'),$pv);
             $all_pv += (int)$sb;
         }
-        return $this->output_success(200,$all_pv,'这是一周pv');
+        return $this->output_success(200,$all_pv,'这是一个月pv');
     }
 
 
