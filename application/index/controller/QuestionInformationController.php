@@ -140,7 +140,12 @@ class QuestionInformationController extends Base
 
         $view_num = Db::name('qview')->where(['date_time'=>$date_time,'qid'=>$qid])->value('view');
 
-        if (!$view_num) {
+//        问题表
+        $view_add = Db::name('question')
+            ->where(['qid'=>$qid])
+            ->update(['views'=>$view_num+1]);;
+
+        if (!$view_num&&$view_add) {
 
             $res = Db::name('qview')
                 ->insert(['date_time'=>$date_time,'qid'=>$qid,'view'=>1]);

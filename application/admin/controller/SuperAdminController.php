@@ -36,6 +36,7 @@ class SuperAdminController extends AdminBase
             $this->output_error(400,'管理员列表获取失败');
         }
     }
+
     /**
      * 新增管理员接口
      * @return array

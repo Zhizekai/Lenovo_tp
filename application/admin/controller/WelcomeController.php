@@ -30,4 +30,19 @@ class WelcomeController extends AdminBase
 
     }
 
+
+    public function show_welcome () {
+        $this->check_admin(1);
+
+        $res = Db::name('welcome')->find();
+
+        if ($res) {
+            return $this->output_success(10010,$res,'获取欢迎语成功');
+        } else {
+            return $this->output_success(10000,0,'获取欢迎语失败');
+        }
+
+
+    }
+
 }

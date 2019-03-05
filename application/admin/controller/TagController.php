@@ -20,7 +20,6 @@ class TagController extends AdminBase
      * @throws \think\exception\PDOException
      */
 
-
     public function add_tag () {
 
         $this->check_admin();
@@ -29,26 +28,133 @@ class TagController extends AdminBase
 
         $tag_id = input('tag_id',0,'intval');
 
+        if ($tag_id == 0) {
+            return $this->output_error(10009,'标签id不能为空哦！已经报警了！');
+        }
+
+        if ($qid == 0) {
+            return $this->output_error(10009,'问题id不能为空哦！已经报警了！');
+        }
+
         $add = Db::name('question')
             ->where(['id'=>$qid])
             ->update(['tag_id'=>$tag_id]);
 
         if ($add) {
-            return $this->output_success(10010,1,'标签问题成功');
+            return $this->output_success(10010,$add,'标签问题成功');
         } else {
             return $this->output_success(10000,0,'标签问题失败');
         }
 
     }
 
+
+    /**
+     * 新增
+     * @return array
+     */
+
+    public function insert_tag () {
+
+        $this->check_admin(1);
+
+        $tag = input('tag','','trim');
+
+        if (empty($tag)) {
+            return $this->output_error(10009,'标签内容不能为空哦！已经报警了！');
+        }
+
+        $add = Db::name('tags')->insert(['tag'=>$tag]);
+
+        if ($add) {
+            return $this->output_success(10010,$add,'添加新标签类别成功');
+        } else {
+            return $this->output_success(10000,0,'添加新标签类别失败');
+        }
+
+    }
+
+    /**
+     * 删除标签
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+
+    public function delete_tag () {
+
+        $this->check_admin(1);
+
+        $tid = input('tid',0,'intval');
+
+        if ($tid == 0) {
+            return $this->output_error(10009,'标签id不能为空哦！已经报警了！');
+        }
+
+        $add = Db::name('tags')
+            ->where('id',$tid)
+            ->delete();
+
+        if ($add) {
+            return $this->output_success(10010,$add,'删除新标签类别成功');
+        } else {
+            return $this->output_success(10000,0,'删除新标签类别失败');
+        }
+
+    }
+
+    /**
+     * 更新标签
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\exception\PDOException
+     */
+    public function up_tag () {
+
+        $this->check_admin(1);
+
+        $tid = input('tid',0,'intval');
+
+        $tag = input('tag','','trim');
+
+        if ($tid == 0) {
+            return $this->output_error(10009,'标签id不能为空哦！已经报警了！');
+        }
+
+        if (empty($tag)) {
+            return $this->output_error(10009,'标签内容不能为空哦！已经报警了！');
+        }
+
+        $add = Db::name('tags')
+            ->where('id',$tid)
+            ->update(['tag'=>$tag]);
+
+        if ($add) {
+            return $this->output_success(10010,$add,'更新新标签类别成功');
+        } else {
+            return $this->output_success(10000,0,'更新新标签类别失败');
+        }
+
+    }
+
+    /**
+     * 展示标签
+     * @return array
+     * @throws \think\Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+
     public function show_tag () {
 
         $this->check_admin();
 
-        $res = Db::name('tag')->select();
+        $res = Db::name('tags')->select();
 
         if ($res) {
-            return $this->output_success(10010,1,'标签提取成功');
+            return $this->output_success(10010,$res,'标签提取成功');
         } else {
             return $this->output_success(10000,0,'标签提取失败');
         }
