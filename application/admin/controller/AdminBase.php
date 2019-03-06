@@ -145,6 +145,10 @@ class AdminBase extends Controller
         }else {
             Db::name('admin')->where('token',$token)->update(['expire'=>time()]);
         }
+
+        $admin_id = Db::name('admin')->where(['token'=>$token])->value('id');
+
+        return $admin_id;
     }
 
 

@@ -126,8 +126,9 @@ class DealQuestionController extends AdminBase
 
     public function search () {
 
-        $this->check_admin();
+        $admin_id = $this->check_admin();
         $where = [];
+
         $tag_id = input('tag_id',0,'intval');
 //        问题标签id
         $status = input('status',0,'intval');
@@ -146,28 +147,40 @@ class DealQuestionController extends AdminBase
             $where['a.question'] = ['like','%'.$describe.'%'];
         }
 
+
+        if ($admin_id != 1) {
+            $where2['a.who_admin'] = $admin_id;
+        } else {
+            $where2 = [];
+        }
+
         $where['a.is_deleted'] = 0;
 
         $page = input('page',1,'intval');
         //        页面
 //        if (!is_null($page)) {
-
         $questions = Db::name('question')->alias('a')
             ->join('user b','a.user_id=b.id')
             ->join('tags t','a.tag_id=t.id')
-            ->where(['t.status'=>'1'])
+            ->where(['t.status'=>1])
             ->where($where)
+            ->whereOr('a.who_admin',0)
+            ->where($where2)
             ->order('a.status asc')
-            ->field('a.question,a.answer,a.status,a.id,a.user_id,a.tag_id,a.show_number,a.views,a.isshow,t.tag')
+            ->field('a.question,a.answer,a.status,a.id,a.user_id,a.tag_id,a.show_number,a.views,a.isshow,t.tag,a.who_admin')
             ->page($page,15)
             ->select();
-        dump(Db::name('question')->getLastSql());
+
+//        var_dump(Db::name('question')->getLastSql());
+
 
 
         $count = Db::name('question')->alias('a')
             ->join('user b','a.user_id=b.id')
             ->join('tags t','a.tag_id=t.id')
             ->where(['t.status'=>1])
+            ->where('a.who_admin',0)
+            ->whereOr('a.who_admin',$admin_id)
             ->where($where)
             ->count();
 
@@ -185,7 +198,7 @@ class DealQuestionController extends AdminBase
             if ($questions&&$count) {
                 return $this->output_success(10010,$questions,$count);
             } else {
-                return $this->output_success(10000,0,'获取问题列表失败');
+                return $this->output_success(10000,[],'获取问题列表失败');
             }
 //        } else {
 //            $res = Db::name('question')

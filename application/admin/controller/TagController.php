@@ -41,16 +41,16 @@ class TagController extends AdminBase
             ->update(['tag_id'=>$tag_id]);
 
         if ($add) {
-            return $this->output_success(10010,$add,'标签问题成功');
+            return $this->output_success(10010,$add,'标签问题操作成功');
         } else {
-            return $this->output_success(10000,0,'标签问题失败');
+            return $this->output_success(10000,0,'标签问题操作失败');
         }
 
     }
 
 
     /**
-     * 新增
+     * 新增标签类别
      * @return array
      */
 
@@ -75,7 +75,7 @@ class TagController extends AdminBase
     }
 
     /**
-     * 删除标签
+     * 删除标签类别
      * @return array
      * @throws \think\Exception
      * @throws \think\exception\PDOException
@@ -104,7 +104,7 @@ class TagController extends AdminBase
     }
 
     /**
-     * 更新标签
+     * 更新标签类别
      * @return array
      * @throws \think\Exception
      * @throws \think\exception\PDOException

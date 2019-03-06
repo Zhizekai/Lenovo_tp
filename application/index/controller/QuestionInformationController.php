@@ -43,13 +43,14 @@ class QuestionInformationController extends Base
             if (empty($uid)) {
                 return $this->output_error(10009,'用户信息错误');
             }
-            $where['a.user_id'] = $uid;
 
+            $where['a.user_id'] = $uid;
             $order = 'a.status asc';
-        } else {
-//            $where['show_number'] = ['>',0];
-            $where['a.isshow'] = 1;
         }
+// else {
+////            $where['show_number'] = ['>',0];
+////            $where['a.isshow'] = 1;
+//        }
 
 
         $questions = Db::name('question')->alias('a')
@@ -58,7 +59,7 @@ class QuestionInformationController extends Base
             ->where($where)
             ->order($order)
             ->order('a.show_number asc')
-            ->field('a.question,a.answer,b.name,a.status,a.id')
+            ->field('a.question,a.answer,b.name,a.status,a.id,a.tag_id')
             ->page($page,15)
             ->select();
 
@@ -138,28 +139,33 @@ class QuestionInformationController extends Base
 //            $where = ['id'=>$uid];
 //        }
 
-        $view_num = Db::name('qview')->where(['date_time'=>$date_time,'qid'=>$qid])->value('view');
+        $view_num = Db::name('qview')
+            ->where(['date_time'=>$date_time,'qid'=>$qid])
+            ->value('view');
 
 //        问题表
         $view_add = Db::name('question')
-            ->where(['qid'=>$qid])
-            ->update(['views'=>$view_num+1]);;
+            ->where('id',$qid)
+            ->setInc('views');
+        if ($view_add) {
+            if (!$view_num) {
 
-        if (!$view_num&&$view_add) {
-
-            $res = Db::name('qview')
-                ->insert(['date_time'=>$date_time,'qid'=>$qid,'view'=>1]);
-
-        }else{
-            $res = Db::name('qview')
-                ->where(['date_time'=>$date_time,'qid'=>$qid])
-                ->update(['view'=>$view_num+1]);
-//            var_dump(Db::name('qview')->getLastSql());die;
+                $res = Db::name('qview')
+                    ->insert(['date_time'=>$date_time,'qid'=>$qid,'view'=>1]);
+            }else{
+                $res = Db::name('qview')
+                    ->where(['date_time'=>$date_time,'qid'=>$qid])
+                    ->setInc('view');
+        //            var_dump(Db::name('qview')->getLastSql());die;
+            }
+        } else {
+            $res =false;
         }
 
 
+
         if ($res) {
-            return $this->output_success(10010,'','添加浏览成功');
+            return $this->output_success(10010,1,'添加浏览成功');
 //            无返回
         } else {
             return $this->output_error(10000,'添加浏览失败');
@@ -174,14 +180,13 @@ class QuestionInformationController extends Base
             $deal = explode(' ',$token);
             $token = $deal[1];
             $uid=$this->lenovo_getuid($token);
-
         } else {
             $uid = 0;
             $this->output_error(10000,'查询用户失败');
         }
 
 
-        $res = Db::name('question')->where(['user_id'=>$uid,'status'=>1])->count('status');
+        $res = Db::name('question')->where(['user_id'=>$uid,'status'=>1])->count();
 
         if ($res) {
             return $this->output_success(10010,$res,'查询未阅读成功');
