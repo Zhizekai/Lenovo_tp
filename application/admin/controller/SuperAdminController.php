@@ -28,12 +28,12 @@ class SuperAdminController extends AdminBase
     {
         $this->check_admin(1);
 
-        $res = Db::name('admin')->field('id,account,password,head_img,info,name')->where('is_deleted',0)->select();
+        $res = Db::name('admin')->field('id,account,password,head_img,info,name,status')->where('is_deleted',0)->select();
 
         if ($res) {
-            $this->output_success(200,$res,'管理员列表获取成功');
+           return $this->output_success(200,$res,'管理员列表获取成功');
         }else {
-            $this->output_error(400,'管理员列表获取失败');
+           return $this->output_error(400,'管理员列表获取失败');
         }
     }
     /**
@@ -65,7 +65,8 @@ class SuperAdminController extends AdminBase
             'password'=>$password,
             'name'=>$name,
             'head_img'=>$head_img,
-            'info'=>$info
+            'info'=>$info,
+            'update_time' => date('Y-m-d H:i:s',time())
         ]);
 
         if ($res) {
@@ -111,7 +112,10 @@ class SuperAdminController extends AdminBase
 
         $this->check_admin(1);
         $admin_id = input('admin_id',0,'intval');
-        $res = Db::name('admin')->where('id',$admin_id)->update('is_deleted',1);
+        $res = Db::name('admin')->where('id',$admin_id)->update([
+            'is_deleted'=>1,
+            'update_time' => date('Y-m-d H:i:s',time())
+            ]);
         if ($res) {
             return $this->output_success(200,'管理员删除成功');
         }else {
@@ -130,7 +134,7 @@ class SuperAdminController extends AdminBase
 
         $this->check_admin(1);
         $admin_id = input('admin_id',0,'intval');
-        $res = Db::name('admin')->where('id',$admin_id)->update('status',2);
+        $res = Db::name('admin')->where('id',$admin_id)->update(['status'=>2]);
         if ($res) {
             return $this->output_success(200,'管理员冻结成功');
         }else {
@@ -149,9 +153,12 @@ class SuperAdminController extends AdminBase
 
         $this->check_admin(1);
         $admin_id = input('admin_id',0,'intval');
-        $res = Db::name('admin')->where('id',$admin_id)->update('status',1);
+        $res = Db::name('admin')->where('id',$admin_id)->update([
+            'status'=>1,
+            'update_time' => date('Y-m-d H:i:s',time())
+            ]);
         if ($res) {
-            return $this->output_success(200,'管理员解冻成功');
+            return $this->output_success(200,[],'管理员解冻成功');
         }else {
             return $this->output_error(400,'管理员解冻失败');
         }
@@ -186,7 +193,8 @@ class SuperAdminController extends AdminBase
             'password'=>$password,
             'name'=>$name,
             'head_img'=>$head_img,
-            'info'=>$info
+            'info'=>$info,
+            'update_time' => date('Y-m-d H:i:s',time())
         ]);
 
         if ($res) {

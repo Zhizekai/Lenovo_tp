@@ -37,7 +37,7 @@ class UserController extends Base
         //获取openid openid['openid']才是真正的openid
         $openid = $this->sever($code);
         if (array_key_exists('errmsg',$openid)){
-            return $this->output_error(40029,'code错误|appkey错误|appscrect错误');
+            return $this->output_error(40029,'错误信息'.$openid);
         }
         if (!$age){
             return $this->output_error(10010,'请输入年龄');
@@ -87,10 +87,8 @@ class UserController extends Base
 
         //更新token和token过期时间
         $token = $this->token_create($openid['openid']);
-        $res = Db::name('user')->where('open_id',$openid['openid'])->update(['api_token'=>$token,'api_token_expire'=>time()]);
-        if (empty($res)){
-            return $this->output_error(40029,'看到这条信息就证明同一个用户不同的code得到的是不同的openid，我拿你的code找微信要的openid是'
-            .$openid['openid'].'我想数据库里一定没有这个openid');
+        if (empty($token)) {
+            return $this->output_error(666,'生成toekn出了点问题');
         }
 
         //返回登陆信息
@@ -99,26 +97,18 @@ class UserController extends Base
 
 
 
-    public function zzk()
+    public function zzk($openid)
     {
-        $start_year = input('start_year/s');
-        $start_month = input('start_month/s');
-        $start_day = input('start_day/s');
-
-        $start=new DateTime($start_year.'-'.$start_month.'-'.$start_day);
 
 
-
-        $week = date("Y-m-d",strtotime($start_year.'-'.$start_month.'-'.$start_day." -1 week"));
-        $end=new DateTime($week);
-        $all_pv = 0;
-
-
-        //从20号到21号是一天
-        foreach(new DatePeriod($start,new DateInterval('P1D'),$end) as $zzk) {
-            $sb = exec('/root/zzkPv.sh'.' '.$zzk->format('d').' '.$zzk->format('M').' '.$zzk->format('Y'),$pv);
-            $all_pv += (int)$sb;
+        //更新token和token过期时间
+        $token = $this->token_create($openid);
+        if (empty($token)) {
+            return $this->output_error(666,'生成toekn出了点问题');
         }
+
+        //返回登陆信息
+        return $this->output_success(200,$token,'登陆成功');
     }
 
     /**
