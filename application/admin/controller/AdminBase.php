@@ -123,9 +123,8 @@ class AdminBase extends Controller
 
         if ($sup_admin) {
             $res = Db::name('admin')->where('token',$token)->value('status');
-            if (!$res) {
-                $json = $this->output_error(400,'你不是超级管理员，伪造超级管理员身份，已报警');
-                echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
+            if (!$res == 1) {
+                header('HTTP/1.0 401 Unauthorized');exit;
             }
 
         }
@@ -134,7 +133,7 @@ class AdminBase extends Controller
         //判断是否超时
         $timestamp = Db::name('admin')->where(['token'=>$token])->value('expire');
         if (!$timestamp) {
-            $json = $this->output_error(400,'这是你伪造的token，已报警');
+            $json = $this->output_error(400,'这是你伪造的token，你的ip是'.$_SERVER["REMOTE_ADDR"].'已经交由警方处理');
             echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
         }
         $timediff = (int)$timestamp-time();
@@ -145,10 +144,7 @@ class AdminBase extends Controller
         }else {
             Db::name('admin')->where('token',$token)->update(['expire'=>time()]);
         }
-
-        $admin_id = Db::name('admin')->where(['token'=>$token])->value('id');
-
-        return $admin_id;
+       return Db::name('admin')->where('token',$token)->value('id');
     }
 
 

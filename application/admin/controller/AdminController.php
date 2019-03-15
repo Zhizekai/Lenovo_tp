@@ -25,24 +25,37 @@ class AdminController extends AdminBase
     public function admin_login()
     {
 
-        $account = input('account', 0, 'intval');
+        $account = input('account', 0, 'trim');
 //        管理员id
         $psw = input('password', '', 'trim');
-
 
 //        密码
 
         $res = Db::name('admin')
-            ->where(['account' => $account, 'password' => $psw])
-            ->field('token,status')
-            ->select();
-        $res1 = $res[0]['token'];
-        $res2 = $res[0]['status'];
+            ->where(['account' => $account, 'password' => $psw ])
+            ->where('status','<',2)
+            ->find();
 
         if ($res) {
-            return $this->output_success(10010, $res1, $res2);
+//            $res1 = $res[0]['token'];
+//            $res2 = $res[0]['status'];
+            $time = time();
+            $token = sha1(time().rand(55,9999).'lxlcz');
+            $add = Db::name('admin')
+                ->where(['account' => $account])
+                ->update(['token'=>$token,'expire'=>$time]);
+
+            if ($add) {
+                $sta = Db::name('admin')
+                    ->where(['account' => $account,])
+                    ->field('status')
+                    ->find();
+                return $this->output_success(10010, $token, $sta);
+            } else {
+                return $this->output_success(10009,[],'token生成失败');
+            }
         } else {
-            return $this->output_success(10000, 0, '你好像不是管理员，登录失败');
+            return $this->output_success(10000, [], '账号密码错误，登录失败');
         }
 
     }
@@ -63,16 +76,23 @@ class AdminController extends AdminBase
 
         $qid = input('qid', 0, 'intval');
 
-
-        $choice = Db::name('question')
-            ->where('id', $qid)
-            ->update(['who_admin' => $who_admin]);
-
-        if ($choice) {
-            return $this->output_success(10010, 1, '指定管理员成功');
+        $check = Db::name('admin')->where(['id'=>$who_admin])->field('status')->find();
+        if ($check['status'] == 2) {
+            return $this->output_success(10008,[],'该管理员被冻结');
         } else {
-            return $this->output_success(10000, 0, '指定管理员失败');
+            $choice = Db::name('question')->alias('q')->join('admin a','q.admin_id=a.id')
+                ->where(['q.id'=>$qid])
+                ->update(['q.who_admin' => $who_admin]);
+
+
+            if ($choice) {
+                return $this->output_success(10010, 1, '指定管理员成功');
+            } else {
+                return $this->output_success(10000, [], '该管理员无法指定');
+            }
         }
+
+
 
     }
 

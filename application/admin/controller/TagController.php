@@ -90,16 +90,22 @@ class TagController extends AdminBase
         if ($tid == 0) {
             return $this->output_error(10009,'标签id不能为空哦！已经报警了！');
         }
-
-        $add = Db::name('tags')
-            ->where('id',$tid)
-            ->delete();
-
-        if ($add) {
-            return $this->output_success(10010,$add,'删除新标签类别成功');
+        $check = Db::name('tags')->alias('t')->join('question q','t.id=q.tag_id')
+            ->where('q.tag_id',$tid)
+            ->select();
+        if ($check) {
+            return $this->output_success(10008,[],'该标签类别关联问题无法删除');
         } else {
-            return $this->output_success(10000,0,'删除新标签类别失败');
+            $add = Db::name('tags')
+                ->where('id',$tid)
+                ->delete();
+            if ($add) {
+                return $this->output_success(10010,$add,'删除标签类别成功');
+            } else {
+                return $this->output_success(10000,[],'删除标签类别失败');
+            }
         }
+
 
     }
 
@@ -118,11 +124,11 @@ class TagController extends AdminBase
         $tag = input('tag','','trim');
 
         if ($tid == 0) {
-            return $this->output_error(10009,'标签id不能为空哦！已经报警了！');
+            return $this->output_success(10009,[],'标签id不能为空哦！已经报警了！');
         }
 
         if (empty($tag)) {
-            return $this->output_error(10009,'标签内容不能为空哦！已经报警了！');
+            return $this->output_success(10009,[],'标签内容不能为空哦！已经报警了！');
         }
 
         $add = Db::name('tags')
@@ -132,7 +138,7 @@ class TagController extends AdminBase
         if ($add) {
             return $this->output_success(10010,$add,'更新新标签类别成功');
         } else {
-            return $this->output_success(10000,0,'更新新标签类别失败');
+            return $this->output_success(10000,[],'更新新标签类别失败');
         }
 
     }
@@ -156,7 +162,7 @@ class TagController extends AdminBase
         if ($res) {
             return $this->output_success(10010,$res,'标签提取成功');
         } else {
-            return $this->output_success(10000,0,'标签提取失败');
+            return $this->output_success(10000,[],'标签提取失败');
         }
 
     }

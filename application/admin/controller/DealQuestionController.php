@@ -69,17 +69,19 @@ class DealQuestionController extends AdminBase
 
     public function answer_question () {
 
-        $this->check_admin();
+        $aid = $this->check_admin();
 
         $qid = input('qid',0,'intval');
         $answer = input('answer','','trim');
-        $status = 1;
-        $update = Db::name('question')->where('id',$qid)->update(['answer'=>$answer,'status'=>$status]);
+//        $status = 1;
+        $update = Db::name('question')
+            ->where('id',$qid)
+            ->update(['answer'=>$answer,'status'=>1,'admin_id'=>$aid]);
 
         if ($update) {
             return $this->output_success(10010,1,'回答成功');
         } else {
-            return $this->output_success(10000,0,'回答失败');
+            return $this->output_success(10000,[],'回答失败');
         }
 
     }
@@ -107,7 +109,7 @@ class DealQuestionController extends AdminBase
         if ($change) {
             return $this->output_success(10000,1,'修改问题顺序成功');
         } else {
-            return $this->output_success(10010,0,'问题顺序修改失败');
+            return $this->output_success(10010,[],'问题顺序修改失败');
         }
 
     }
@@ -127,6 +129,7 @@ class DealQuestionController extends AdminBase
     public function search () {
 
         $admin_id = $this->check_admin();
+
         $where = [];
 
         $tag_id = input('tag_id',0,'intval');
@@ -137,6 +140,7 @@ class DealQuestionController extends AdminBase
 //        问题描述
         if ($tag_id != 0) {
             $where['a.tag_id'] = $tag_id;
+
         }
 
         if ($status != 0) {
@@ -149,10 +153,13 @@ class DealQuestionController extends AdminBase
 
 
         if ($admin_id != 1) {
-            $where2['a.who_admin'] = $admin_id;
-        } else {
-            $where2 = [];
+            $where3  = 'a.who_admin=0 OR a.who_admin='.$admin_id;
+
         }
+        else {
+            $where3 = [];
+        }
+
 
         $where['a.is_deleted'] = 0;
 
@@ -162,25 +169,24 @@ class DealQuestionController extends AdminBase
         $questions = Db::name('question')->alias('a')
             ->join('user b','a.user_id=b.id')
             ->join('tags t','a.tag_id=t.id')
+            ->where($where3)
             ->where(['t.status'=>1])
             ->where($where)
-            ->whereOr('a.who_admin',0)
-            ->where($where2)
-            ->order('a.status asc')
+            ->order('a.id asc')
             ->field('a.question,a.answer,a.status,a.id,a.user_id,a.tag_id,a.show_number,a.views,a.isshow,t.tag,a.who_admin')
             ->page($page,15)
             ->select();
-
 //        var_dump(Db::name('question')->getLastSql());
+
+
 
 
 
         $count = Db::name('question')->alias('a')
             ->join('user b','a.user_id=b.id')
             ->join('tags t','a.tag_id=t.id')
+            ->where($where3)
             ->where(['t.status'=>1])
-            ->where('a.who_admin',0)
-            ->whereOr('a.who_admin',$admin_id)
             ->where($where)
             ->count();
 
@@ -198,7 +204,8 @@ class DealQuestionController extends AdminBase
             if ($questions&&$count) {
                 return $this->output_success(10010,$questions,$count);
             } else {
-                return $this->output_success(10000,[],'获取问题列表失败');
+                return $this->output_success(10000,[],0
+                );
             }
 //        } else {
 //            $res = Db::name('question')
@@ -238,7 +245,7 @@ class DealQuestionController extends AdminBase
         if ($res) {
             return $this->output_success(10010,1,'上下架问题成功');
         } else {
-            return $this->output_success(10000,0,'上下架问题失败');
+            return $this->output_success(10000,[],'上下架问题失败');
         }
 
     }

@@ -46,6 +46,8 @@ class QuestionInformationController extends Base
 
             $where['a.user_id'] = $uid;
             $order = 'a.status asc';
+        } else {
+            $where['a.isshow'] = 1;
         }
 // else {
 ////            $where['show_number'] = ['>',0];
@@ -78,7 +80,7 @@ class QuestionInformationController extends Base
         if ($questions) {
             return $this->output_success(10010,$questions,'获取我的问题列表成功');
         } else {
-            return $this->output_error(10000,'获取我的问题列表失败');
+            return $this->output_success(10000,[],'获取我的问题列表失败');
         }
 
     }
@@ -111,7 +113,7 @@ class QuestionInformationController extends Base
 
         $res = Db::name('question')->where(['user_id'=>$uid,'id'=>$qid])->update(['status'=>$status]);
         if (!$res) {
-            return $this->output_error(10000,'我的问题修改失败');
+            return $this->output_success(10000,[],'我的问题修改失败');
         } else {
             return $this->output_success(10010,$qid,'我的问题修改成功');
         }
@@ -168,7 +170,7 @@ class QuestionInformationController extends Base
             return $this->output_success(10010,1,'添加浏览成功');
 //            无返回
         } else {
-            return $this->output_error(10000,'添加浏览失败');
+            return $this->output_success(10000,[],'添加浏览失败');
         }
     }
 
@@ -182,7 +184,7 @@ class QuestionInformationController extends Base
             $uid=$this->lenovo_getuid($token);
         } else {
             $uid = 0;
-            $this->output_error(10000,'查询用户失败');
+            $this->output_success(10000,[],'查询用户失败');
         }
 
 

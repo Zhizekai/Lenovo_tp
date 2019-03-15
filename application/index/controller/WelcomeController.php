@@ -27,11 +27,9 @@ class WelcomeController extends Base
             if ($res) {
                 return $this->output_success(10000,$res,'返回欢迎语成功');
             } else {
-                return $this->output_error(10010,'返回欢迎语失败');
+                return $this->output_success(10010,[],'返回欢迎语失败');
             }
         }
-
-
     }
 
 }

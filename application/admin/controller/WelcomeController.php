@@ -23,9 +23,9 @@ class WelcomeController extends AdminBase
         $res = Db::name('welcome')->where('id',1)->update(['text'=>$text]);
 
         if ($res) {
-            return $this->output_success(10000,'','修改欢迎语成功');
+            return $this->output_success(10000,1,'修改欢迎语成功');
         } else {
-            return $this->output_error(10010,'修改欢迎语失败');
+            return $this->output_success(10010,[],'修改欢迎语失败');
         }
 
     }
@@ -39,7 +39,7 @@ class WelcomeController extends AdminBase
         if ($res) {
             return $this->output_success(10010,$res,'获取欢迎语成功');
         } else {
-            return $this->output_success(10000,0,'获取欢迎语失败');
+            return $this->output_success(10000,[],'获取欢迎语失败');
         }
 
 
