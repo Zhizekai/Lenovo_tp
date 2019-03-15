@@ -125,7 +125,6 @@ class Base extends Controller
 
         $token=sha1((string)$open_id.time().rand(20,800));
 
-
         //存储token
         Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
         //返回token
