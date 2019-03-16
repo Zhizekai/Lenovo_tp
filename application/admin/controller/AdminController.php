@@ -55,7 +55,7 @@ class AdminController extends AdminBase
                 return $this->output_success(10009,[],'token生成失败');
             }
         } else {
-            return $this->output_success(10000, [], '账号密码错误，登录失败');
+            return $this->output_success(10000, [], '你可能被冻结或者账号密码错误，无法登陆');
         }
 
     }
