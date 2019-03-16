@@ -34,10 +34,11 @@ class UserController extends Base
         $years = input('years',0,'trim');
 
 
+
         //获取openid openid['openid']才是真正的openid
-        $openid = $this->sever($code);
+        $openid = $this->get_openid($code);
         if (array_key_exists('errmsg',$openid)){
-            return $this->output_error(40029,'错误信息'.$openid);
+            return $this->output_error(40029,'appkey错误');
         }
         if (!$age){
             return $this->output_error(10010,'请输入年龄');
@@ -79,7 +80,7 @@ class UserController extends Base
         $code = input('code',0,'trim');
 
         //得到openid
-        $openid = $this->sever($code);
+        $openid = $this->get_openid($code);
         if (array_key_exists('errmsg',$openid)){
             return $this->output_error(40029,'code错误|appkey|appscrect错误');
         }
@@ -97,18 +98,9 @@ class UserController extends Base
 
 
 
-    public function zzk($openid)
+    public function zzk()
     {
 
-
-        //更新token和token过期时间
-        $token = $this->token_create($openid);
-        if (empty($token)) {
-            return $this->output_error(666,'生成toekn出了点问题');
-        }
-
-        //返回登陆信息
-        return $this->output_success(200,$token,'登陆成功');
     }
 
     /**
@@ -118,8 +110,8 @@ class UserController extends Base
      */
     public function get_openid($code){
 
-        $appid = 'wx98cb9fae6e8b0cca';
-        $appsecret = 'b215d069d948ea9c79234a25b1eba9ea';
+        $appid = 'wx0c64556e12bdbea5';
+        $appsecret = 'db3e37beb5302e6da5b9d4e0450743a4';
 
         $url = 'https://api.weixin.qq.com/sns/jscode2session?appid='.$appid.'&secret='.$appsecret.'&js_code='.$code.'&grant_type=authorization_code';
         $html = file_get_contents($url);
@@ -130,8 +122,8 @@ class UserController extends Base
     public function sever($code)
     {
         $config = [
-            'app_id' => 'wx98cb9fae6e8b0cca',
-            'secret' => 'b215d069d948ea9c79234a25b1eba9ea',
+            'app_id' => 'wx0c64556e12bdbea5',
+            'secret' => 'db3e37beb5302e6da5b9d4e0450743a4',
 
             // 下面为可选项
             // 指定 API 调用返回结果的类型：array(default)/collection/object/raw/自定义类名

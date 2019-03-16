@@ -31,7 +31,7 @@ class PublishController extends Base
         $res = Db::name('question')->insert([
             'user_id'=>$uid,
             'question'=>$question,
-            'update_time'=>date('Y-m-d',time())
+            'tag_id'=>1
         ]);
 
         if (!$res) {

@@ -84,7 +84,9 @@ class Base extends Controller
 
         //判断是否超时
         //===========
-        $timestamp = Db::name('user')->where(['api_token'=>$token])->value('api_token_expire');
+        $timestamp = Db::name('user')->where([
+            'api_token'=>$token
+        ])->value('api_token_expire');
 
         if (empty($timestamp)){
             header('HTTP/1.0 401 Unauthorized');exit;
@@ -126,7 +128,32 @@ class Base extends Controller
         $token=sha1((string)$open_id.time().rand(20,800));
 
         //存储token
-        Db::name('user')->where('open_id',$open_id)->update(['api_token'=>$token,'api_token_expire'=>time()]);
+        Db::name('user')->where('open_id',$open_id)->update([
+            'api_token'=>$token,
+            'api_token_expire'=>time(),
+        ]);
+        //返回token
+        return $token;
+    }
+
+    /**
+     * 创建Token
+     * 创建规则：
+     * token=sha1(user_id+secret_key+timestamp_now)
+     * @param $user_id
+     */
+    public function token_admin_create(){
+
+
+        //创建token=sha1(user_id + secret_key+salt+time())
+
+        $token=sha1('shdkug4outhitrdhgui'.time().rand(20,800));
+
+        //存储token
+        Db::name('user')->where('open_id',$open_id)->update([
+            'api_token'=>$token,
+            'api_token_expire'=>time(),
+        ]);
         //返回token
         return $token;
     }
