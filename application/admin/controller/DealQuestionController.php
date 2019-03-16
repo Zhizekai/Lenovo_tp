@@ -172,7 +172,7 @@ class DealQuestionController extends AdminBase
             ->where($where3)
             ->where(['t.status'=>1])
             ->where($where)
-            ->order('a.id asc')
+            ->order('a.id desc')
             ->field('a.question,a.answer,a.status,a.id,a.user_id,a.tag_id,a.show_number,a.views,a.isshow,t.tag,a.who_admin')
             ->page($page,15)
             ->select();

@@ -108,8 +108,9 @@ class AdminBase extends Controller
         //检查登陆
         $token = explode(' ',$request['authorization']);
         if (!array_key_exists('1',$token)) {
-            $json = $this->output_error(401,'请登陆');
-            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
+            header('HTTP/1.0 401 Unauthorized');exit;
+//            $json = $this->output_error(401,'请登陆');
+//            echo json_encode($json,JSON_UNESCAPED_UNICODE);exit;
         }
 
         //判断这个管理员有没有被删除
@@ -124,7 +125,8 @@ class AdminBase extends Controller
         if ($sup_admin) {
             $res = Db::name('admin')->where('token',$token)->value('status');
             if (!$res == 1) {
-                header('HTTP/1.0 401 Unauthorized');exit;
+                $json = $this->output_success(401,[],'你不是管理员');
+                echo json_encode($json);
             }
 
         }
@@ -144,7 +146,7 @@ class AdminBase extends Controller
         }else {
             Db::name('admin')->where('token',$token)->update(['expire'=>time()]);
         }
-       return Db::name('admin')->where('token',$token)->value('id');
+        return Db::name('admin')->where('token',$token)->value('id');
     }
 
 
